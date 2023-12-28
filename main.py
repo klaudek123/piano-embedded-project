@@ -10,7 +10,7 @@ import datetime
 
 # Tworzymy lub łączymy się z bazą danych
 # Tworzymy tabelę w bazie danych
-
+aktualny_klawisz_sekwencji = None
 # Funkcja zapisująca sekwencję do bazy danych SQLite
 def zapisz_do_bazy(nazwa_utworu, klawisz_lista, czas_lista):
     print("lista klawiszy:")
@@ -47,6 +47,101 @@ def zapisz_do_bazy(nazwa_utworu, klawisz_lista, czas_lista):
     for row in cursor.execute("SELECT * FROM Utwory"):
         print(row)
 
+def odtworz_wybrany_utwor(id_utworu):
+    conn = sqlite3.connect('sekwencje_pianina.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Sekwencje WHERE id_utworu=?", (id_utworu,))
+    sekwencja = cursor.fetchall()
+
+    # Odtwarzanie sekwencji utworu
+    for row in sekwencja:
+        klawisz = row[2]
+        czas_nacisniecia = row[3]
+
+        zagraj_dzwiek(klawisz)
+        time.sleep(czas_nacisniecia)  # Poczekaj przed odtworzeniem kolejnego dźwięku
+
+    conn.close()
+
+
+def zagraj_dzwiek(klawisz):
+    # Implementacja odtwarzania dźwięku dla danego klawisza
+    sample_rate = 44100
+    duration = 0.1  # 0.1 second
+    t = np.linspace(0, duration, int(sample_rate * duration), False)
+    note = np.sin(frequencies[klawisz] * t * 2 * np.pi)
+    # Odtworzenie dźwięku
+    sd.play(note, sample_rate)
+
+def zmiana_koloru(klawisz):
+    global klawisze_buttons
+    for button in klawisze_buttons:
+        if button['text'] == klawisz:
+            button.config(bg="yellow")
+            button.update_idletasks()  # Wymuszenie odświeżenia interfejsu
+
+def reset_koloru(klawisz):
+    global klawisze_buttons
+    for button in klawisze_buttons:
+        if button['text'] == klawisz:
+            button.config(bg="white" if '#' not in klawisz else "black")
+            button.update_idletasks()  # Wymuszenie odświeżenia interfejsu
+
+def odtworz_wybrany_utwor_z_tutorialem(id_utworu):
+    conn = sqlite3.connect('sekwencje_pianina.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Sekwencje WHERE id_utworu=?", (id_utworu,))
+    sekwencja = cursor.fetchall()
+    conn.close()
+
+    # Odtwarzanie sekwencji utworu z podświetlaniem klawiszy
+    for row in sekwencja:
+        klawisz = row[2]
+        czas_nacisniecia = row[3]
+
+        zmiana_koloru(klawisz)
+        zagraj_dzwiek(klawisz)
+        time.sleep(czas_nacisniecia)
+
+        # Resetowanie koloru po odtworzeniu dźwięku
+        reset_koloru(klawisz)
+        time.sleep(0.05)  # Dodatkowy czas, aby kolor mógł się zresetować
+
+    conn.close()
+
+
+# Tutaj funkcja odtwarzająca dźwięk dla danego klawisza
+def odtworz_utwor_z_bazy(tryb):
+    conn = sqlite3.connect('sekwencje_pianina.db')
+    cursor = conn.cursor()
+
+    # Pobieranie wszystkich utworów z tabeli Utwory
+    cursor.execute("SELECT * FROM Utwory")
+    utwory = cursor.fetchall()
+
+    # Przygotowanie interfejsu wyboru utworu do odtworzenia
+    top = tk.Toplevel()
+    top.title("Odtwarzanie utworu")
+
+    # Funkcja do odtwarzania wybranego utworu
+
+
+    # Tworzenie przycisków do odtwarzania utworów
+    for utwor in utwory:
+        nazwa_utworu = utwor[1]
+        id_utworu = utwor[0]
+        if tryb == 0:
+            button = tk.Button(top, text=nazwa_utworu, command=lambda id_utworu=id_utworu: odtworz_wybrany_utwor(id_utworu))
+        elif tryb == 1:
+
+            button = tk.Button(top, text=nazwa_utworu,
+                               command=lambda id_utworu=id_utworu: odtworz_wybrany_utwor_z_tutorialem(id_utworu))
+        button.pack()
+
+    conn.close()
+
+
+
 
 # Częstotliwości dźwięków klawiszy
 frequencies = {
@@ -80,15 +175,6 @@ frequencies = {
 klawisze_pianina = ['C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'H4', 'C5', 'C#5', 'D5',
                     'D#5', 'E5', 'F5', 'F#5', 'G5', 'G#5', 'A5', 'A#5', 'H5']
 
-# Tutaj funkcja odtwarzająca dźwięk dla danego klawisza
-def zagraj_dzwiek(klawisz):
-    # Implementacja odtwarzania dźwięku dla danego klawisza
-    sample_rate = 44100
-    duration = 0.2  # 0.2 second
-    t = np.linspace(0, duration, int(sample_rate * duration), False)
-    note = np.sin(frequencies[klawisz] * t * 2 * np.pi)
-    # Odtworzenie dźwięku
-    sd.play(note, sample_rate)
 
 
 # Funkcja obsługująca kliknięcie klawisza na interfejsie
@@ -105,7 +191,7 @@ nagrywanie = False
 czas_lista = []
 klawisz_lista = []
 czas_nacisniecia = time.time()
-
+kolor_tymczasowy = ""
 
 # def nagrywaj_sekwencje():
 #     def zapisz_sekwencje():
@@ -171,32 +257,42 @@ def stworz_przycisk_nagrywania():
 przycisk_nagrywania = stworz_przycisk_nagrywania()
 przycisk_nagrywania.pack()
 
+guzik_odtworz = tk.Button(root, text="Odtwórz utwór", command=lambda: odtworz_utwor_z_bazy(0))
+guzik_odtworz.pack()
 
-# Funkcja tworząca przyciski dla klawiszy pianina
-# def stworz_klawisz(klawisz):
-#     return tk.Button(root, width=4, height=8, bg='white', fg='grey', font=("arial", 18, "bold"), text=klawisz,
-#                      command=lambda: klikniecie_klawisza(klawisz))
-#
-# def stworz_klawisz_czarny(klawisz):
-#     return tk.Button(root, width=3, height=5, bg='black', fg='white', font=("arial", 12, "bold"), text=klawisz,
-#                      command=lambda: klikniecie_klawisza(klawisz))
+guzik_odtworz_z_tutorialem = tk.Button(root, text="Odtwórz utwór z tutorialem", command=lambda: odtworz_utwor_z_bazy(1))
+guzik_odtworz_z_tutorialem.pack()
 
-def stworz_klawisz(klawisz, czarny=False):
+
+klawisze_buttons = []
+def stworz_klawisz(klawisz, x, czarny=False):
     if czarny:
-        return tk.Button(root, width=3, height=5, bg='black', fg='white', font=("arial", 12, "bold"), text=klawisz,
-                         command=lambda: klikniecie_klawisza(klawisz))
+        button = tk.Button(root, width=4, height=6, bg='black', fg='white', text=klawisz,
+                           command=lambda: klikniecie_klawisza(klawisz))
+        button.place(x=x, y=100)
     else:
-        return tk.Button(root, width=4, height=8, bg='white', fg='grey', font=("arial", 18, "bold"), text=klawisz,
-                         command=lambda: klikniecie_klawisza(klawisz))
+        button = tk.Button(root, width=8, height=12, bg='white', fg='black', text=klawisz,
+                           command=lambda: klikniecie_klawisza(klawisz))
+        button.place(x=x, y=100)
+    klawisze_buttons.append(button)
+    return button
 
-# Dodanie klawiszy do interfejsu na zmianę
+x_coordinate = 0
+
+# white keys
+for i in range(len(klawisze_pianina)):
+    if '#' not in klawisze_pianina[i]:
+        przycisk_bialy = stworz_klawisz(klawisze_pianina[i], x_coordinate)
+        x_coordinate += przycisk_bialy.winfo_reqwidth()
+
+black_key_offsets = {'C#4': 1, 'D#4': 2, 'F#4': 4, 'G#4': 5, 'A#4': 6, 'C#5':8, 'D#5':9, 'F#5':11, 'G#5':12, 'A#5':13}
+
 for i in range(len(klawisze_pianina)):
     if '#' in klawisze_pianina[i]:
-        przycisk_czarny = stworz_klawisz(klawisze_pianina[i], True)
-        przycisk_czarny.pack(side=tk.LEFT)
-    else:
-        przycisk_bialy = stworz_klawisz(klawisze_pianina[i])
-        przycisk_bialy.pack(side=tk.LEFT)
+        white_key_width = przycisk_bialy.winfo_reqwidth()
+        black_key_offset = black_key_offsets[klawisze_pianina[i]]
+        black_key_x = (black_key_offset * white_key_width) - (white_key_width // 3.65)
 
-# Rozpoczęcie głównej pętli programu
+        stworz_klawisz(klawisze_pianina[i], black_key_x, czarny=True)
+
 root.mainloop()
