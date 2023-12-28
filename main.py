@@ -6,32 +6,47 @@ import pygame
 import sounddevice as sd
 
 import sqlite3
+import datetime
 
 # Tworzymy lub łączymy się z bazą danych
-
-
 # Tworzymy tabelę w bazie danych
 
-
 # Funkcja zapisująca sekwencję do bazy danych SQLite
-def zapisz_do_bazy(klawisz_lista, czas_lista):
-    print("dupa")
+def zapisz_do_bazy(nazwa_utworu, klawisz_lista, czas_lista):
+    print("lista klawiszy:")
     print(klawisz_lista)
+    print("czas dla kawiszy: ")
     print(czas_lista)
     conn = sqlite3.connect('sekwencje_pianina.db')
     cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Utwory (
+                       id INTEGER PRIMARY KEY AUTOINCREMENT,
+                       nazwa_utworu TEXT,
+                       data_utworu TIMESTAMP)''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS Sekwencje (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id_utworu NUMBER,
                     klawisz TEXT,
                     czas_nacisniecia REAL)''')
+
+    # Dodanie utworu do tabeli Utwory
+    cursor.execute('''INSERT INTO Utwory (nazwa_utworu, data_utworu) VALUES (?, ?)''', (nazwa_utworu, datetime.datetime.now().strftime("%d-%m-%y %H:%M:%S")))
+
+    # Pobranie ID dodanego utworu
+    id_utworu = cursor.lastrowid
+
     for i in range(len(klawisz_lista)):
-        cursor.execute('''INSERT INTO Sekwencje (klawisz, czas_nacisniecia)
-                        VALUES (?, ?)''', (klawisz_lista[i], czas_lista[i]))
+        cursor.execute('''INSERT INTO Sekwencje (id_utworu, klawisz, czas_nacisniecia)
+                        VALUES (?, ?, ?)''', (id_utworu, klawisz_lista[i], czas_lista[i]))
     conn.commit()
+    print("Sekwencje: ")
     for row in cursor.execute("SELECT * FROM Sekwencje"):
         print(row)
 
-  
+    print("Utworki:")
+    for row in cursor.execute("SELECT * FROM Utwory"):
+        print(row)
+
 
 # Częstotliwości dźwięków klawiszy
 frequencies = {
@@ -134,10 +149,17 @@ def nagrywanie_fun():
     global nagrywanie
     global klawisz_lista
     global czas_lista
+    global czas_nacisniecia
+
     nagrywanie = not nagrywanie
 
+    czas_nacisniecia = time.time()
+
+
     if nagrywanie == False:
-        zapisz_do_bazy(klawisz_lista,czas_lista)
+        #TODO MARTA INPUT DO NAZWY
+
+        zapisz_do_bazy("utworek123", klawisz_lista, czas_lista)
 
         klawisz_lista = []
         czas_lista = []
@@ -146,18 +168,18 @@ def nagrywanie_fun():
 def stworz_przycisk_nagrywania():
     return tk.Button(root, text="Nagrywaj sekwencję", command=lambda: nagrywanie_fun())
 
-
 przycisk_nagrywania = stworz_przycisk_nagrywania()
 przycisk_nagrywania.pack()
 
-# Funkcja tworząca przyciski dla klawiszy pianina
-def stworz_klawisz(klawisz):
-    return tk.Button(root, width=4, height=8, bg='white', fg='grey', font=("arial", 18, "bold"), text=klawisz,
-                     command=lambda: klikniecie_klawisza(klawisz))
 
-def stworz_klawisz_czarny(klawisz):
-    return tk.Button(root, width=3, height=5, bg='black', fg='white', font=("arial", 12, "bold"), text=klawisz,
-                     command=lambda: klikniecie_klawisza(klawisz))
+# Funkcja tworząca przyciski dla klawiszy pianina
+# def stworz_klawisz(klawisz):
+#     return tk.Button(root, width=4, height=8, bg='white', fg='grey', font=("arial", 18, "bold"), text=klawisz,
+#                      command=lambda: klikniecie_klawisza(klawisz))
+#
+# def stworz_klawisz_czarny(klawisz):
+#     return tk.Button(root, width=3, height=5, bg='black', fg='white', font=("arial", 12, "bold"), text=klawisz,
+#                      command=lambda: klikniecie_klawisza(klawisz))
 
 def stworz_klawisz(klawisz, czarny=False):
     if czarny:
