@@ -1,5 +1,8 @@
 import time
 import tkinter as tk
+from tkinter import ttk
+from PIL import Image, ImageTk
+from ttkthemes import ThemedTk
 
 import numpy as np
 import pygame
@@ -226,11 +229,7 @@ kolor_tymczasowy = ""
 # Inicjalizacja Pygame (do obsługi dźwięków)
 pygame.init()
 
-# Tworzenie okna głównego
-root = tk.Tk()
-root.title("Wirtualne pianino")
-root.geometry("1280x400")
-
+# --------------------------------GUI------------------------------------
 def nagrywanie_fun():
     global nagrywanie
     global klawisz_lista
@@ -251,48 +250,89 @@ def nagrywanie_fun():
         czas_lista = []
 
 
-def stworz_przycisk_nagrywania():
-    return tk.Button(root, text="Nagrywaj sekwencję", command=lambda: nagrywanie_fun())
-
-przycisk_nagrywania = stworz_przycisk_nagrywania()
-przycisk_nagrywania.pack()
-
-guzik_odtworz = tk.Button(root, text="Odtwórz utwór", command=lambda: odtworz_utwor_z_bazy(0))
-guzik_odtworz.pack()
-
-guzik_odtworz_z_tutorialem = tk.Button(root, text="Odtwórz utwór z tutorialem", command=lambda: odtworz_utwor_z_bazy(1))
-guzik_odtworz_z_tutorialem.pack()
-
 
 klawisze_buttons = []
-def stworz_klawisz(klawisz, x, czarny=False):
+def stworz_klawisz(where, klawisz, x, czarny=False):
     if czarny:
-        button = tk.Button(root, width=4, height=6, bg='black', fg='white', text=klawisz,
+        button = tk.Button(where, width=6, height=12, bg='black', fg='white', text=klawisz,
                            command=lambda: klikniecie_klawisza(klawisz))
         button.place(x=x, y=100)
     else:
-        button = tk.Button(root, width=8, height=12, bg='white', fg='black', text=klawisz,
+        button = tk.Button(where, width=12, height=20, bg='white', fg='black', text=klawisz,
                            command=lambda: klikniecie_klawisza(klawisz))
         button.place(x=x, y=100)
     klawisze_buttons.append(button)
     return button
 
-x_coordinate = 0
 
-# white keys
-for i in range(len(klawisze_pianina)):
-    if '#' not in klawisze_pianina[i]:
-        przycisk_bialy = stworz_klawisz(klawisze_pianina[i], x_coordinate)
-        x_coordinate += przycisk_bialy.winfo_reqwidth()
+def guiApp():
+    root = ThemedTk(theme="adapta") 
+    root.title("Wirtualne pianino")
+    root.geometry("1024x600")
 
-black_key_offsets = {'C#4': 1, 'D#4': 2, 'F#4': 4, 'G#4': 5, 'A#4': 6, 'C#5':8, 'D#5':9, 'F#5':11, 'G#5':12, 'A#5':13}
+    ico = Image.open('icon22.png')
+    photo = ImageTk.PhotoImage(ico)
+    root.wm_iconphoto(False, photo)
+    
+    style = ttk.Style()
+    style.configure('TNotebook.Tab', font=('Helvetica', '20'))
 
-for i in range(len(klawisze_pianina)):
-    if '#' in klawisze_pianina[i]:
-        white_key_width = przycisk_bialy.winfo_reqwidth()
-        black_key_offset = black_key_offsets[klawisze_pianina[i]]
-        black_key_x = (black_key_offset * white_key_width) - (white_key_width // 3.65)
+    # main notebook of app
+    app = ttk.Notebook(root)
+    app.pack(side='top', fill='both', expand=True)
 
-        stworz_klawisz(klawisze_pianina[i], black_key_x, czarny=True)
+    # Pianino frame
+    pianinoFrame = ttk.Frame(app)
+    pianinoFrame.pack(fill='both', expand=True)
 
-root.mainloop()
+
+    # Buttons frame
+    buttonsFrame = ttk.Frame(pianinoFrame)
+    buttonsFrame.pack(side='top', fill='x', padx=10, pady=10)
+
+    # Recordings frame
+    recordingsFrame = ttk.Frame(app)
+    recordingsFrame.pack(fill='both', expand=True)
+
+    # Tutorials frame
+    tutorialsFrame = ttk.Frame(app)
+    tutorialsFrame.pack(fill='both', expand=True)
+
+    # Adding tabs to the app notebook
+    app.add(pianinoFrame, text='Pianino')
+    app.add(recordingsFrame, text='Nagrane nagrania')
+    app.add(tutorialsFrame, text='Tutorial')
+
+    # adding buttons
+
+    przycisk_nagrywania = tk.Button(buttonsFrame, text="Nagrywaj sekwencję", command=lambda: nagrywanie_fun())
+    przycisk_nagrywania.pack(side='left', padx=5)
+
+    guzik_odtworz = tk.Button(buttonsFrame, text="Odtwórz utwór", command=lambda: odtworz_utwor_z_bazy(0))
+    guzik_odtworz.pack(side='left', padx=5)
+
+    guzik_odtworz_z_tutorialem = tk.Button(buttonsFrame, text="Odtwórz utwór z tutorialem", command=lambda: odtworz_utwor_z_bazy(1))
+    guzik_odtworz_z_tutorialem.pack(side='left', padx=5)
+    
+    # Adding piano keys to the pianino_frame
+    x_coordinate = 0
+
+    # white keys
+    for i in range(len(klawisze_pianina)):
+        if '#' not in klawisze_pianina[i]:
+            przycisk_bialy = stworz_klawisz(pianinoFrame, klawisze_pianina[i], x_coordinate)
+            x_coordinate += przycisk_bialy.winfo_reqwidth()
+
+    black_key_offsets = {'C#4': 1, 'D#4': 2, 'F#4': 4, 'G#4': 5, 'A#4': 6, 'C#5':8, 'D#5':9, 'F#5':11, 'G#5':12, 'A#5':13}
+
+    for i in range(len(klawisze_pianina)):
+        if '#' in klawisze_pianina[i]:
+            white_key_width = przycisk_bialy.winfo_reqwidth()
+            black_key_offset = black_key_offsets[klawisze_pianina[i]]
+            black_key_x = (black_key_offset * white_key_width) - (white_key_width // 3.65)
+
+            stworz_klawisz(pianinoFrame, klawisze_pianina[i], black_key_x, czarny=True)
+    
+    root.mainloop()
+
+guiApp()
