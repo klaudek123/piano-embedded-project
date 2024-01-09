@@ -223,11 +223,16 @@ def lista_utworow_z_bazy(tryb, where):
 
     conn.close()
 
-def nagrywanie_fun():
+def nagrywanie_fun(przycisk_nagrywania, icons):
     global nagrywanie
     global klawisz_lista
     global czas_lista
     global czas_nacisniecia
+
+    if nagrywanie:
+        przycisk_nagrywania.config(image=icons[0])
+    else:
+        przycisk_nagrywania.config(image=icons[1])
 
     nagrywanie = not nagrywanie
 
@@ -258,6 +263,8 @@ def stworz_klawisz(where, klawisz, x, czarny=False):
     return button
 
 
+
+
 def guiApp():
     root = ThemedTk(theme="adapta") 
     root.title("Wirtualne pianino")
@@ -268,7 +275,7 @@ def guiApp():
     root.wm_iconphoto(False, photo)
     
     style = ttk.Style()
-    style.configure('TNotebook.Tab', font=('Helvetica', '20'))
+    style.configure('Custom.TButton', bordercolor='blue', background='lightgray')
 
     # style = Style()
  
@@ -305,11 +312,25 @@ def guiApp():
     app.add(recordingsFrame, text='Nagrane nagrania')
     app.add(tutorialsFrame, text='Tutorial')
 
-    # adding button
+    # dodanie przycisku do nagrywania sekwencji
+    # skalowanie 1 ikony to przycku
+    rec_icon_1_path = './rec-off.png'
+    image1 = Image.open(rec_icon_1_path)
+    image1 = image1.resize((50, 50), Image.LANCZOS)
+    rec_icon_1 = ImageTk.PhotoImage(image1)
 
-    przycisk_nagrywania = tk.Button(buttonsFrame, text="Nagrywaj sekwencję", command=lambda: nagrywanie_fun())
+    # skalowanie 1 ikony to przycku
+    rec_icon_2_path = './rec-on.png'
+    image2 = Image.open(rec_icon_2_path)
+    image2 = image2.resize((50, 50), Image.LANCZOS)
+    rec_icon_2 = ImageTk.PhotoImage(image2)
+
+
+    przycisk_nagrywania = ttk.Button(buttonsFrame, image=rec_icon_1, style='Custom.TButton', command=lambda: nagrywanie_fun(przycisk_nagrywania, [rec_icon_1, rec_icon_2]))
     przycisk_nagrywania.pack(side='left', padx=5)
-
+    
+    przycisk_nagrywania.rec_icon1 = rec_icon_1
+    przycisk_nagrywania.rec_icon2 = rec_icon_2
     # guzik_odtworz = tk.Button(buttonsFrame, text="Odtwórz utwór", command=lambda: odtworz_utwor_z_bazy(0))
     # guzik_odtworz.pack(side='left', padx=5)
 
