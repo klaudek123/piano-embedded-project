@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 from ttkthemes import ThemedTk
+from datetime import datetime, timedelta
 
 import numpy as np
 import pygame
@@ -13,6 +14,9 @@ import datetime
 
 
 aktualny_klawisz_sekwencji = None
+start_time = None
+nagrywanie = False
+
 # Funkcja zapisująca sekwencję do bazy danych SQLite
 def zapisz_do_bazy(nazwa_utworu, klawisz_lista, czas_lista):
     print("lista klawiszy:")
@@ -223,18 +227,30 @@ def lista_utworow_z_bazy(tryb, where):
 
     conn.close()
 
-def nagrywanie_fun(przycisk_nagrywania, icons):
+def update_timer(timer_label):
+    if nagrywanie:
+        elapsed_time = time.time() - start_time
+        formatted_time = time.strftime('%H:%M:%S', time.gmtime(elapsed_time))
+        timer_label.config(text=formatted_time)
+        timer_label.after(1000, lambda: update_timer(timer_label))
+
+def nagrywanie_fun(przycisk_nagrywania, icons, timer_label):
     global nagrywanie
     global klawisz_lista
     global czas_lista
     global czas_nacisniecia
-
-    if nagrywanie:
-        przycisk_nagrywania.config(image=icons[0])
-    else:
-        przycisk_nagrywania.config(image=icons[1])
+    global start_time
 
     nagrywanie = not nagrywanie
+
+    if nagrywanie:
+        przycisk_nagrywania.config(image=icons[1])
+        start_time = time.time()
+        update_timer(timer_label)
+    else:
+        przycisk_nagrywania.config(image=icons[0])
+        timer_label.config(text="00:00:00")
+
 
     czas_nacisniecia = time.time()
 
@@ -325,12 +341,21 @@ def guiApp():
     image2 = image2.resize((50, 50), Image.LANCZOS)
     rec_icon_2 = ImageTk.PhotoImage(image2)
 
-
-    przycisk_nagrywania = ttk.Button(buttonsFrame, image=rec_icon_1, style='Custom.TButton', command=lambda: nagrywanie_fun(przycisk_nagrywania, [rec_icon_1, rec_icon_2]))
+    # przycisk nagrywania
+    przycisk_nagrywania = ttk.Button(
+        buttonsFrame, 
+        image=rec_icon_1, 
+        style='Custom.TButton', 
+        command=lambda: nagrywanie_fun(przycisk_nagrywania, [rec_icon_1, rec_icon_2], timer_label)
+    )
     przycisk_nagrywania.pack(side='left', padx=5)
     
-    przycisk_nagrywania.rec_icon1 = rec_icon_1
-    przycisk_nagrywania.rec_icon2 = rec_icon_2
+    #czas nagrywania
+    timer_label = ttk.Label(buttonsFrame, text="00:00:00", font=('Helvetica', '16'))
+    timer_label.pack(side=tk.LEFT, padx=20, pady=20)
+
+    
+
     # guzik_odtworz = tk.Button(buttonsFrame, text="Odtwórz utwór", command=lambda: odtworz_utwor_z_bazy(0))
     # guzik_odtworz.pack(side='left', padx=5)
 
