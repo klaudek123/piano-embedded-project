@@ -11,8 +11,7 @@ import sounddevice as sd
 import sqlite3
 import datetime
 
-# Tworzymy lub łączymy się z bazą danych
-# Tworzymy tabelę w bazie danych
+
 aktualny_klawisz_sekwencji = None
 # Funkcja zapisująca sekwencję do bazy danych SQLite
 def zapisz_do_bazy(nazwa_utworu, klawisz_lista, czas_lista):
@@ -113,37 +112,6 @@ def odtworz_wybrany_utwor_z_tutorialem(id_utworu):
     conn.close()
 
 
-# Tutaj funkcja odtwarzająca dźwięk dla danego klawisza
-def odtworz_utwor_z_bazy(tryb):
-    conn = sqlite3.connect('sekwencje_pianina.db')
-    cursor = conn.cursor()
-
-    # Pobieranie wszystkich utworów z tabeli Utwory
-    cursor.execute("SELECT * FROM Utwory")
-    utwory = cursor.fetchall()
-
-    # Przygotowanie interfejsu wyboru utworu do odtworzenia
-    top = tk.Toplevel()
-    top.title("Odtwarzanie utworu")
-
-    # Funkcja do odtwarzania wybranego utworu
-
-
-    # Tworzenie przycisków do odtwarzania utworów
-    for utwor in utwory:
-        nazwa_utworu = utwor[1]
-        id_utworu = utwor[0]
-        if tryb == 0:
-            button = tk.Button(top, text=nazwa_utworu, command=lambda id_utworu=id_utworu: odtworz_wybrany_utwor(id_utworu))
-        elif tryb == 1:
-
-            button = tk.Button(top, text=nazwa_utworu,
-                               command=lambda id_utworu=id_utworu: odtworz_wybrany_utwor_z_tutorialem(id_utworu))
-        button.pack()
-
-    conn.close()
-
-
 
 
 # Częstotliwości dźwięków klawiszy
@@ -230,6 +198,31 @@ kolor_tymczasowy = ""
 pygame.init()
 
 # --------------------------------GUI------------------------------------
+# Tutaj funkcja tworząca listę utworów:
+# tryb - nagrania lub tutoriale
+# where - zakładka, gdzie będzie umieszczona lista 
+def lista_utworow_z_bazy(tryb, where):
+    conn = sqlite3.connect('sekwencje_pianina.db')
+    cursor = conn.cursor()
+
+    # Pobieranie wszystkich utworów z tabeli Utwory
+    cursor.execute("SELECT * FROM Utwory")
+    utwory = cursor.fetchall()
+
+    # Tworzenie przycisków do odtwarzania utworów
+    for utwor in utwory:
+        nazwa_utworu = utwor[1]
+        id_utworu = utwor[0]
+        if tryb == 0:
+            button = tk.Button(where, text=nazwa_utworu, command=lambda id_utworu=id_utworu: odtworz_wybrany_utwor(id_utworu))
+        elif tryb == 1:
+
+            button = tk.Button(where, text=nazwa_utworu,
+                               command=lambda id_utworu=id_utworu: odtworz_wybrany_utwor_z_tutorialem(id_utworu))
+        button.pack()
+
+    conn.close()
+
 def nagrywanie_fun():
     global nagrywanie
     global klawisz_lista
@@ -277,6 +270,15 @@ def guiApp():
     style = ttk.Style()
     style.configure('TNotebook.Tab', font=('Helvetica', '20'))
 
+    # style = Style()
+ 
+    # This will be adding style, and 
+    # naming that style variable as 
+    # W.Tbutton (TButton is used for ttk.Button).
+    style.configure('W.TButton', font =
+               ('calibri', 10, 'bold', 'underline'),
+                foreground = 'red')
+
     # main notebook of app
     app = ttk.Notebook(root)
     app.pack(side='top', fill='both', expand=True)
@@ -303,17 +305,18 @@ def guiApp():
     app.add(recordingsFrame, text='Nagrane nagrania')
     app.add(tutorialsFrame, text='Tutorial')
 
-    # adding buttons
+    # adding button
 
     przycisk_nagrywania = tk.Button(buttonsFrame, text="Nagrywaj sekwencję", command=lambda: nagrywanie_fun())
     przycisk_nagrywania.pack(side='left', padx=5)
 
-    guzik_odtworz = tk.Button(buttonsFrame, text="Odtwórz utwór", command=lambda: odtworz_utwor_z_bazy(0))
-    guzik_odtworz.pack(side='left', padx=5)
+    # guzik_odtworz = tk.Button(buttonsFrame, text="Odtwórz utwór", command=lambda: odtworz_utwor_z_bazy(0))
+    # guzik_odtworz.pack(side='left', padx=5)
 
-    guzik_odtworz_z_tutorialem = tk.Button(buttonsFrame, text="Odtwórz utwór z tutorialem", command=lambda: odtworz_utwor_z_bazy(1))
-    guzik_odtworz_z_tutorialem.pack(side='left', padx=5)
+    # guzik_odtworz_z_tutorialem = tk.Button(buttonsFrame, text="Odtwórz utwór z tutorialem", command=lambda: odtworz_utwor_z_bazy(1))
+    # guzik_odtworz_z_tutorialem.pack(side='left', padx=5)
     
+
     # Adding piano keys to the pianino_frame
     x_coordinate = 0
 
@@ -333,6 +336,12 @@ def guiApp():
 
             stworz_klawisz(pianinoFrame, klawisze_pianina[i], black_key_x, czarny=True)
     
+    # dodanie listy utworów w zakladce "nagrania"
+    lista_utworow_z_bazy(0, recordingsFrame)
+
+    # dodanie listy tutoriali w zakładce "tutoriale"
+    lista_utworow_z_bazy(1, tutorialsFrame)
+
     root.mainloop()
 
 guiApp()
