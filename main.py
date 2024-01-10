@@ -4,6 +4,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 from ttkthemes import ThemedTk
 from datetime import datetime, timedelta
+import threading
 
 import numpy as np
 import pygame
@@ -154,7 +155,9 @@ klawisze_pianina = ['C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A
 
 # Funkcja obsługująca kliknięcie klawisza na interfejsie
 def klikniecie_klawisza(klawisz):
-    zagraj_dzwiek(klawisz)
+    # Uruchomienie funkcji zagraj_dzwiek w osobnym wątku
+    t = threading.Thread(target=zagraj_dzwiek, args=(klawisz,))
+    t.start()
 
     if nagrywanie == True:
         czas_lista.append(time.time() - czas_nacisniecia)
