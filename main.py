@@ -12,6 +12,10 @@ import sounddevice as sd
 
 import sqlite3
 import datetime
+import pygame.mixer
+
+# Inicjalizacja modułu mixer
+pygame.mixer.init()
 
 
 aktualny_klawisz_sekwencji = None
@@ -72,13 +76,16 @@ def odtworz_wybrany_utwor(id_utworu):
 
 
 def zagraj_dzwiek(klawisz):
-    # Implementacja odtwarzania dźwięku dla danego klawisza
-    sample_rate = 44100
-    duration = 0.1  # 0.1 second
-    t = np.linspace(0, duration, int(sample_rate * duration), False)
-    note = np.sin(frequencies[klawisz] * t * 2 * np.pi)
-    # Odtworzenie dźwięku
-    sd.play(note, sample_rate)
+    # # Implementacja odtwarzania dźwięku dla danego klawisza
+    # sample_rate = 44100
+    # duration = 0.1  # 0.1 second
+    # t = np.linspace(0, duration, int(sample_rate * duration), False)
+    # note = np.sin(frequencies[klawisz] * t * 2 * np.pi)
+    # # Odtworzenie dźwięku
+    # sd.play(note, sample_rate)
+    # Odtwarzanie pliku mp3 za pomocą Pygame
+    sound = pygame.mixer.Sound(frequencies[klawisz])
+    sound.play()
 
 def zmiana_koloru(klawisz):
     global klawisze_buttons
@@ -121,30 +128,30 @@ def odtworz_wybrany_utwor_z_tutorialem(id_utworu):
 
 # Częstotliwości dźwięków klawiszy
 frequencies = {
-    'C4': 261.63,
-    'C#4': 277.18,
-    'D4': 293.66,
-    'D#4': 311.13,
-    'E4': 329.63,
-    'F4': 349.23,
-    'F#4': 369.99,
-    'G4': 392.00,
-    'G#4': 415.30,
-    'A4': 440.00,
-    'A#4': 466.16,
-    'H4': 493.88,
-    'C5': 523.25,
-    'C#5': 554.37,
-    'D5': 587.33,
-    'D#5': 622.25,
-    'E5': 659.25,
-    'F5': 698.46,
-    'F#5': 739.99,
-    'G5': 783.99,
-    'G#5': 830.61,
-    'A5': 880.00,
-    'A#5': 932.33,
-    'H5': 987.77
+    'C4': "24-piano-keys/key01.mp3",
+    'C#4': "24-piano-keys/key02.mp3",
+    'D4': "24-piano-keys/key03.mp3",
+    'D#4': "24-piano-keys/key04.mp3",
+    'E4': "24-piano-keys/key05.mp3",
+    'F4': "24-piano-keys/key06.mp3",
+    'F#4': "24-piano-keys/key07.mp3",
+    'G4': "24-piano-keys/key08.mp3",
+    'G#4': "24-piano-keys/key09.mp3",
+    'A4': "24-piano-keys/key10.mp3",
+    'A#4': "24-piano-keys/key11.mp3",
+    'H4': "24-piano-keys/key12.mp3",
+    'C5': "24-piano-keys/key13.mp3",
+    'C#5': "24-piano-keys/key14.mp3",
+    'D5': "24-piano-keys/key15.mp3",
+    'D#5': "24-piano-keys/key16.mp3",
+    'E5': "24-piano-keys/key17.mp3",
+    'F5': "24-piano-keys/key18.mp3",
+    'F#5': "24-piano-keys/key19.mp3",
+    'G5': "24-piano-keys/key20.mp3",
+    'G#5': "24-piano-keys/key21.mp3",
+    'A5': "24-piano-keys/key22.mp3",
+    'A#5': "24-piano-keys/key23.mp3",
+    'H5': "24-piano-keys/key24.mp3"
 }
 
 # Lista klawiszy pianina
