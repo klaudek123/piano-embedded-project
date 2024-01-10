@@ -8,7 +8,6 @@ import threading
 
 import numpy as np
 import pygame
-import sounddevice as sd
 
 import sqlite3
 import datetime
