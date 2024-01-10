@@ -295,7 +295,7 @@ def guiApp():
     root = ThemedTk(theme="adapta") 
     root.title("Wirtualne pianino")
     root.geometry("1024x600")
-
+    root.attributes('-fullscreen', True)
     ico = Image.open('icon22.png')
     photo = ImageTk.PhotoImage(ico)
     root.wm_iconphoto(False, photo)
