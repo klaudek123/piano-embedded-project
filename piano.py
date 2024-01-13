@@ -6,10 +6,6 @@ from ttkthemes import ThemedTk
 from datetime import datetime
 import threading
 import pygame
-<<<<<<< HEAD:main.py
-=======
-
->>>>>>> 2e3aa45af3a2d4a392b88977151773e85562b5bd:piano.py
 import sqlite3
 import datetime
 import pygame.mixer
@@ -65,6 +61,7 @@ def odtworz_wybrany_utwor(id_utworu):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM Sekwencje WHERE id_utworu=?", (id_utworu,))
     sekwencja = cursor.fetchall()
+    conn.close()
 
     # Odtwarzanie sekwencji utworu
     for row in sekwencja:
@@ -76,24 +73,6 @@ def odtworz_wybrany_utwor(id_utworu):
 
     conn.close()
 
-
-def zagraj_dzwiek(klawisz):
-    pygame.mixer.music.load(frequencies[klawisz])
-    pygame.mixer.music.play()
-
-def zmiana_koloru(klawisz):
-    global klawisze_buttons
-    for button in klawisze_buttons:
-        if button['text'] == klawisz:
-            button.config(bg="yellow")
-            button.update_idletasks()  # Wymuszenie odświeżenia interfejsu
-
-def reset_koloru(klawisz):
-    global klawisze_buttons
-    for button in klawisze_buttons:
-        if button['text'] == klawisz:
-            button.config(bg="white" if '#' not in klawisz else "black")
-            button.update_idletasks()  # Wymuszenie odświeżenia interfejsu
 
 def odtworz_wybrany_utwor_z_tutorialem(id_utworu):
     conn = sqlite3.connect('sekwencje_pianina.db')
@@ -116,6 +95,24 @@ def odtworz_wybrany_utwor_z_tutorialem(id_utworu):
         time.sleep(0.05)  # Dodatkowy czas, aby kolor mógł się zresetować
 
     conn.close()
+
+def zagraj_dzwiek(klawisz):
+    pygame.mixer.music.load(frequencies[klawisz])
+    pygame.mixer.music.play()
+
+def zmiana_koloru(klawisz):
+    global klawisze_buttons
+    for button in klawisze_buttons:
+        if button['text'] == klawisz:
+            button.config(bg="yellow")
+            button.update_idletasks()  # Wymuszenie odświeżenia interfejsu
+
+def reset_koloru(klawisz):
+    global klawisze_buttons
+    for button in klawisze_buttons:
+        if button['text'] == klawisz:
+            button.config(bg="white" if '#' not in klawisz else "black")
+            button.update_idletasks()  # Wymuszenie odświeżenia interfejsu
 
 
 
@@ -197,8 +194,8 @@ def lista_utworow_z_bazy(tryb, where):
     # Usunięcie wszystkich przycisków z widżetu przed dodaniem nowych
     for widget in where.winfo_children():
         widget.destroy()
+
     # Tworzenie przycisków do odtwarzania utworów
-    button = tk.Button
     for utwor in utwory:
         nazwa_utworu = utwor[1]
         id_utworu = utwor[0]
@@ -269,71 +266,39 @@ def stworz_klawisz(where, klawisz, x, czarny=False):
     klawisze_buttons.append(button)
     return button
 
-recordingsFrame = tk.Frame
-tutorialsFrame = tk.Frame
+recordingsFrame = None
+tutorialsFrame = None
 
 def guiApp():
-    root = ThemedTk(theme="adapta") 
+    global recordingsFrame, tutorialsFrame
+    root = ThemedTk(theme="adapta")
     root.title("Wirtualne pianino")
     root.geometry("1024x600")
-<<<<<<< HEAD:main.py
-    root.attributes('-fullscreen', True)
-=======
-    
-    root.attributes('-fullscreen',True)
 
->>>>>>> 2e3aa45af3a2d4a392b88977151773e85562b5bd:piano.py
     ico = Image.open('icon22.png')
     photo = ImageTk.PhotoImage(ico)
     root.wm_iconphoto(False, photo)
-    
+
     style = ttk.Style()
     style.configure('Custom.TButton', bordercolor='blue', background='lightgray')
+    style.configure('W.TButton', font=('calibri', 10, 'bold', 'underline'), foreground='red')
 
-    # style = Style()
- 
-    # This will be adding style, and 
-    # naming that style variable as 
-    # W.Tbutton (TButton is used for ttk.Button).
-    style.configure('W.TButton', font =
-               ('calibri', 10, 'bold', 'underline'),
-                foreground = 'red')
-
-    # main notebook of app
     app = ttk.Notebook(root)
     app.pack(side='top', fill='both', expand=True)
 
-    # Pianino frame
     pianinoFrame = ttk.Frame(app)
     pianinoFrame.pack(fill='both', expand=True)
 
-
-    # Buttons frame
     buttonsFrame = ttk.Frame(pianinoFrame)
     buttonsFrame.pack(side='top', fill='x', padx=0, pady=0)
 
-    # Recordings frame
     recordingsFrame = ttk.Frame(app)
     recordingsFrame.pack(fill='both', expand=True)
 
-    # Tutorials frame
-    # tutorialsFrame = ttk.Frame(app)
-    # tutorialsFrame.pack(fill='both', expand=True)
+    tutorialsFrame = ttk.Frame(app)
+    tutorialsFrame.pack(fill='both', expand=True)
 
     # Tutorials frame with scrollable capability
-    tutorialsFrame = ttk.Frame(app)
-    tutorialsCanvas = tk.Canvas(tutorialsFrame)
-    tutorialsScrollbar = ttk.Scrollbar(tutorialsFrame, orient="vertical", command=tutorialsCanvas.yview)
-    scrollableTutorialsFrame = ttk.Frame(tutorialsCanvas)
-
-    # Configuring the canvas
-    tutorialsCanvas.configure(yscrollcommand=tutorialsScrollbar.set)
-    tutorialsCanvas.bind('<Configure>', lambda e: tutorialsCanvas.configure(scrollregion=tutorialsCanvas.bbox("all")))
-    tutorialsCanvas.create_window((0, 0), window=scrollableTutorialsFrame, anchor="nw")
-
-    tutorialsCanvas.pack(side="left", fill="both", expand=True)
-    tutorialsScrollbar.pack(side="right", fill="y")  # Tutorials frame with scrollable capability
-    tutorialsFrame = ttk.Frame(app)
     tutorialsCanvas = tk.Canvas(tutorialsFrame)
     tutorialsScrollbar = ttk.Scrollbar(tutorialsFrame, orient="vertical", command=tutorialsCanvas.yview)
     scrollableTutorialsFrame = ttk.Frame(tutorialsCanvas)
@@ -346,57 +311,38 @@ def guiApp():
     tutorialsCanvas.pack(side="left", fill="both", expand=True)
     tutorialsScrollbar.pack(side="right", fill="y")
 
-    # Adding tabs to the app notebook
     app.add(pianinoFrame, text='Pianino')
     app.add(recordingsFrame, text='Nagrane nagrania')
     app.add(tutorialsFrame, text='Tutorial')
 
-    # dodanie przycisku do nagrywania sekwencji
-    # skalowanie 1 ikony to przycku
     rec_icon_1_path = './rec-off.png'
     image1 = Image.open(rec_icon_1_path)
     image1 = image1.resize((50, 50), Image.LANCZOS)
     rec_icon_1 = ImageTk.PhotoImage(image1)
 
-    # skalowanie 1 ikony to przycku
     rec_icon_2_path = './rec-on.png'
     image2 = Image.open(rec_icon_2_path)
     image2 = image2.resize((50, 50), Image.LANCZOS)
     rec_icon_2 = ImageTk.PhotoImage(image2)
 
-    # przycisk nagrywania
     przycisk_nagrywania = ttk.Button(
-        buttonsFrame, 
-        image=rec_icon_1, 
-        style='Custom.TButton', 
+        buttonsFrame,
+        image=rec_icon_1,
+        style='Custom.TButton',
         command=lambda: nagrywanie_fun(przycisk_nagrywania, [rec_icon_1, rec_icon_2], timer_label)
     )
     przycisk_nagrywania.pack(side='left', padx=5)
-    
-    #czas nagrywania
+
     timer_label = ttk.Label(buttonsFrame, text="00:00:00", font=('Helvetica', '16'))
     timer_label.pack(side=tk.LEFT, padx=5, pady=5)
 
-    
-
-    # guzik_odtworz = tk.Button(buttonsFrame, text="Odtwórz utwór", command=lambda: odtworz_utwor_z_bazy(0))
-    # guzik_odtworz.pack(side='left', padx=5)
-
-    # guzik_odtworz_z_tutorialem = tk.Button(buttonsFrame, text="Odtwórz utwór z tutorialem", command=lambda: odtworz_utwor_z_bazy(1))
-    # guzik_odtworz_z_tutorialem.pack(side='left', padx=5)
-    
-
-    # Adding piano keys to the pianino_frame
     x_coordinate = 0
-
-    # white keys
     for i in range(len(klawisze_pianina)):
         if '#' not in klawisze_pianina[i]:
             przycisk_bialy = stworz_klawisz(pianinoFrame, klawisze_pianina[i], x_coordinate)
             x_coordinate += przycisk_bialy.winfo_reqwidth()
 
-    black_key_offsets = {'C#4': 1, 'D#4': 2, 'F#4': 4, 'G#4': 5, 'A#4': 6, 'C#5':8, 'D#5':9, 'F#5':11, 'G#5':12, 'A#5':13}
-
+    black_key_offsets = {'C#4': 1, 'D#4': 2, 'F#4': 4, 'G#4': 5, 'A#4': 6, 'C#5': 8, 'D#5': 9, 'F#5': 11, 'G#5': 12, 'A#5': 13}
     for i in range(len(klawisze_pianina)):
         if '#' in klawisze_pianina[i]:
             white_key_width = przycisk_bialy.winfo_reqwidth()
@@ -404,12 +350,12 @@ def guiApp():
             black_key_x = (black_key_offset * white_key_width) - (white_key_width // 3.1)
 
             stworz_klawisz(pianinoFrame, klawisze_pianina[i], black_key_x, czarny=True)
-    
-    # dodanie listy utworów w zakladce "nagrania"
-    lista_utworow_z_bazy(0, recordingsFrame)
 
-    # dodanie listy tutoriali w zakładce "tutoriale"
+    lista_utworow_z_bazy(0, recordingsFrame)
     lista_utworow_z_bazy(1, tutorialsFrame)
+
+    def on_configure(event):
+        tutorialsCanvas.configure(scrollregion=tutorialsCanvas.bbox("all"))
 
     root.bind("<KeyPress>", obsluga_wielu_klawiszy)
     root.bind("<KeyRelease>", obsluga_wielu_klawiszy)
