@@ -69,7 +69,7 @@ def odtworz_wybrany_utwor(id_utworu):
         czas_nacisniecia = row[3]
 
         zagraj_dzwiek(klawisz)
-        time.sleep(0.05)  # Poczekaj przed odtworzeniem kolejnego dźwięku
+        #time.sleep(0.05)  # Poczekaj przed odtworzeniem kolejnego dźwięku
 
     conn.close()
 
@@ -88,11 +88,11 @@ def odtworz_wybrany_utwor_z_tutorialem(id_utworu):
 
         zmiana_koloru(klawisz)
         zagraj_dzwiek(klawisz)
-        time.sleep(czas_nacisniecia)
+        #time.sleep(czas_nacisniecia)
 
         # Resetowanie koloru po odtworzeniu dźwięku
         reset_koloru(klawisz)
-        time.sleep(0.05)  # Dodatkowy czas, aby kolor mógł się zresetować
+        #time.sleep(0.05)  # Dodatkowy czas, aby kolor mógł się zresetować
 
     conn.close()
 
