@@ -6,6 +6,10 @@ from ttkthemes import ThemedTk
 from datetime import datetime
 import threading
 import pygame
+<<<<<<< HEAD:main.py
+=======
+
+>>>>>>> 2e3aa45af3a2d4a392b88977151773e85562b5bd:piano.py
 import sqlite3
 import datetime
 import pygame.mixer
@@ -272,7 +276,13 @@ def guiApp():
     root = ThemedTk(theme="adapta") 
     root.title("Wirtualne pianino")
     root.geometry("1024x600")
+<<<<<<< HEAD:main.py
     root.attributes('-fullscreen', True)
+=======
+    
+    root.attributes('-fullscreen',True)
+
+>>>>>>> 2e3aa45af3a2d4a392b88977151773e85562b5bd:piano.py
     ico = Image.open('icon22.png')
     photo = ImageTk.PhotoImage(ico)
     root.wm_iconphoto(False, photo)
