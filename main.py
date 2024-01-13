@@ -64,6 +64,9 @@ def show_list_tutorials():
     top = tk.Toplevel()
     top.title("Odtwarzanie utworu")
 
+    # Zablokowanie możliwości zmiany rozmiaru okna
+    top.resizable(False, False)
+
     # Dodanie przewijania do interfejsu
     canvas = tk.Canvas(top)
     canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -76,12 +79,17 @@ def show_list_tutorials():
     frame = tk.Frame(canvas)
     canvas.create_window((0, 0), window=frame, anchor=tk.NW)
 
+    def play_tutorial_and_close(id_utworu, window):
+        window.destroy()
+        odtworz_wybrany_utwor_z_tutorialem(id_utworu)
+
     # Tworzenie przycisków do odtwarzania utworów
     for utwor in utwory:
         nazwa_utworu = utwor[1]
         id_utworu = utwor[0]
 
-        button = tk.Button(frame, text=nazwa_utworu, command=lambda id_utworu=id_utworu: odtworz_wybrany_utwor_z_tutorialem(id_utworu))
+        button = tk.Button(frame, text=nazwa_utworu,
+                           command=lambda id_utworu=id_utworu: play_tutorial_and_close(id_utworu, top))
         button.pack()
 
     def on_configure(event):
@@ -90,7 +98,6 @@ def show_list_tutorials():
     frame.bind('<Configure>', on_configure)
 
     conn.close()
-
 def show_list():
     # Połączenie z bazą danych SQLite
     conn = sqlite3.connect('sekwencje_pianina.db')
@@ -104,6 +111,10 @@ def show_list():
     top = tk.Toplevel()
     top.title("Odtwarzanie utworu")
 
+    # Zablokowanie możliwości zmiany rozmiaru okna
+    top.resizable(False, False)
+
+
     # Dodanie przewijania do interfejsu
     canvas = tk.Canvas(top)
     canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -116,13 +127,17 @@ def show_list():
     frame = tk.Frame(canvas)
     canvas.create_window((0, 0), window=frame, anchor=tk.NW)
 
+    def play_tutorial_and_close(id_utworu, window):
+        window.destroy()
+        odtworz_wybrany_utwor_z_tutorialem(id_utworu)
+
     # Tworzenie przycisków do odtwarzania utworów
     for utwor in utwory:
         nazwa_utworu = utwor[1]
         id_utworu = utwor[0]
 
         # Przycisk do odtwarzania wybranego utworu
-        button = tk.Button(frame, text=nazwa_utworu, command=lambda id_utworu=id_utworu: odtworz_wybrany_utwor(id_utworu))
+        button = tk.Button(frame, text=nazwa_utworu, command=lambda id_utworu=id_utworu: play_tutorial_and_close(id_utworu, top))
         button.pack()
 
     def on_configure(event):
@@ -451,7 +466,7 @@ def guiApp():
     root = ThemedTk(theme="adapta")
     root.title("Wirtualne pianino")
     root.geometry("1024x600")
-
+    root.attributes('-fullscreen', True)
     # Ustawienie ikony aplikacji
     ico = Image.open('icon22.png')
     photo = ImageTk.PhotoImage(ico)
