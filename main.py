@@ -56,6 +56,30 @@ def zapisz_do_bazy(nazwa_utworu, klawisz_lista, czas_lista):
     for row in cursor.execute("SELECT * FROM Utwory"):
         print(row)
 
+def show_list_tutorials():
+    conn = sqlite3.connect('sekwencje_pianina.db')
+    cursor = conn.cursor()
+
+    # Pobieranie wszystkich utworów z tabeli Utwory
+    cursor.execute("SELECT * FROM Utwory")
+    utwory = cursor.fetchall()
+
+    # Przygotowanie interfejsu wyboru utworu do odtworzenia
+    top = tk.Toplevel()
+    top.title("Odtwarzanie utworu")
+
+    # Funkcja do odtwarzania wybranego utworu
+
+
+    # Tworzenie przycisków do odtwarzania utworów
+    for utwor in utwory:
+        nazwa_utworu = utwor[1]
+        id_utworu = utwor[0]
+
+        button = tk.Button(top, text=nazwa_utworu,command=lambda id_utworu=id_utworu: odtworz_wybrany_utwor_z_tutorialem(id_utworu))
+        button.pack()
+    conn.close()
+
 def odtworz_wybrany_utwor(id_utworu):
     conn = sqlite3.connect('sekwencje_pianina.db')
     cursor = conn.cursor()
@@ -440,6 +464,14 @@ def guiApp():
             black_key_x = (black_key_offset * white_key_width) - (white_key_width // 3.1)
 
             stworz_klawisz(pianinoFrame, klawisze_pianina[i], black_key_x, 64, czarny=True)
+
+    przycisk_tutorialu = ttk.Button(
+        tutorialsFrame,
+        text="START",
+        style='Custom.TButton',
+        command=lambda: show_list_tutorials()
+    )
+    przycisk_tutorialu.pack(side='left', padx=5)
 
     x_coordinate = 80
     for i in range(len(klawisze_pianina)):
