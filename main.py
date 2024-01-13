@@ -68,9 +68,34 @@ def odtworz_wybrany_utwor(id_utworu):
         czas_nacisniecia = row[3]
 
         zagraj_dzwiek(klawisz)
-        time.sleep(0.05)  # Poczekaj przed odtworzeniem kolejnego dźwięku
+        #time.sleep(0.05)  # Poczekaj przed odtworzeniem kolejnego dźwięku
 
     conn.close()
+
+def odtworz_wybrany_utwor_z_tutorialem(id_utworu):
+    conn = sqlite3.connect('sekwencje_pianina.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Sekwencje WHERE id_utworu=?", (id_utworu,))
+    sekwencja = cursor.fetchall()
+    conn.close()
+
+    czas_nacisniecia_tmp = 0
+    # Odtwarzanie sekwencji utworu z podświetlaniem klawiszy
+    for row in sekwencja:
+        klawisz = row[2]
+        czas_nacisniecia = row[3]
+
+        zmiana_koloru(klawisz)
+        zagraj_dzwiek(klawisz)
+        time.sleep(czas_nacisniecia - czas_nacisniecia_tmp)
+
+        czas_nacisniecia_tmp = czas_nacisniecia
+        # Resetowanie koloru po odtworzeniu dźwięku
+        reset_koloru(klawisz)
+        #time.sleep(0.05)  # Dodatkowy czas, aby kolor mógł się zresetować
+
+    conn.close()
+
 
 
 def zagraj_dzwiek(klawisz):
@@ -90,30 +115,6 @@ def reset_koloru(klawisz):
         if button['text'] == klawisz:
             button.config(bg="white" if '#' not in klawisz else "black")
             button.update_idletasks()  # Wymuszenie odświeżenia interfejsu
-
-def odtworz_wybrany_utwor_z_tutorialem(id_utworu):
-    conn = sqlite3.connect('sekwencje_pianina.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Sekwencje WHERE id_utworu=?", (id_utworu,))
-    sekwencja = cursor.fetchall()
-    conn.close()
-
-    # Odtwarzanie sekwencji utworu z podświetlaniem klawiszy
-    for row in sekwencja:
-        klawisz = row[2]
-        czas_nacisniecia = row[3]
-
-        zmiana_koloru(klawisz)
-        zagraj_dzwiek(klawisz)
-        time.sleep(czas_nacisniecia)
-
-        # Resetowanie koloru po odtworzeniu dźwięku
-        reset_koloru(klawisz)
-        time.sleep(0.05)  # Dodatkowy czas, aby kolor mógł się zresetować
-
-    conn.close()
-
-
 
 
 # Częstotliwości dźwięków klawiszy
@@ -182,6 +183,50 @@ pygame.init()
 # Tutaj funkcja tworząca listę utworów:
 # tryb - nagrania lub tutoriale
 # where - zakładka, gdzie będzie umieszczona lista
+def ostatni_utwor_z_bazy(tryb, where):
+    conn = sqlite3.connect('sekwencje_pianina.db')
+    cursor = conn.cursor()
+
+    # Pobieranie wszystkich utworów z tabeli Utwory
+    cursor.execute("SELECT * FROM Utwory")
+    utwory = cursor.fetchall()
+
+    # Usunięcie wszystkich przycisków z widżetu przed dodaniem nowych
+    # for widget in where.winfo_children():
+    #     widget.destroy()
+
+    # Tworzenie przycisków do odtwarzania utworów
+    for utwor in utwory:
+        nazwa_utworu = utwor[1]
+        id_utworu = utwor[0]
+        if id_utworu == utwory[-1][0]:
+            if tryb == 0:
+                button = tk.Button(where, text=nazwa_utworu, command=lambda id_utworu=id_utworu: odtworz_wybrany_utwor(id_utworu))
+            elif tryb == 1:
+
+                button = tk.Button(where, text=nazwa_utworu,
+                                   command=lambda id_utworu=id_utworu: odtworz_wybrany_utwor_z_tutorialem(id_utworu))
+            button.pack()
+
+    x_coordinate = 80
+    for i in range(len(klawisze_pianina)):
+        if '#' not in klawisze_pianina[i]:
+            przycisk_bialy = stworz_klawisz(tutorialsFrame, klawisze_pianina[i], x_coordinate, 250)
+            x_coordinate += przycisk_bialy.winfo_reqwidth()
+
+    black_key_offsets = {'C#4': 1, 'D#4': 2, 'F#4': 4, 'G#4': 5, 'A#4': 6, 'C#5': 8, 'D#5': 9, 'F#5': 11, 'G#5': 12,
+                         'A#5': 13}
+    # Rysowanie czarnych klawiszy w pianinoFrame
+    for i in range(len(klawisze_pianina)):
+        if '#' in klawisze_pianina[i]:
+            white_key_width = przycisk_bialy.winfo_reqwidth()
+            black_key_offset = black_key_offsets[klawisze_pianina[i]]
+            black_key_x = (black_key_offset * white_key_width) - (white_key_width // 3.1) + 100
+
+            stworz_klawisz(tutorialsFrame, klawisze_pianina[i], black_key_x, 250, czarny=True)
+
+    conn.close()
+
 def lista_utworow_z_bazy(tryb, where):
     conn = sqlite3.connect('sekwencje_pianina.db')
     cursor = conn.cursor()
@@ -191,8 +236,8 @@ def lista_utworow_z_bazy(tryb, where):
     utwory = cursor.fetchall()
 
     # Usunięcie wszystkich przycisków z widżetu przed dodaniem nowych
-    for widget in where.winfo_children():
-        widget.destroy()
+    # for widget in where.winfo_children():
+    #     widget.destroy()
 
     # Tworzenie przycisków do odtwarzania utworów
     for utwor in utwory:
@@ -206,6 +251,23 @@ def lista_utworow_z_bazy(tryb, where):
                                command=lambda id_utworu=id_utworu: odtworz_wybrany_utwor_z_tutorialem(id_utworu))
         button.pack()
 
+    x_coordinate = 80
+    for i in range(len(klawisze_pianina)):
+        if '#' not in klawisze_pianina[i]:
+            przycisk_bialy = stworz_klawisz(tutorialsFrame, klawisze_pianina[i], x_coordinate, 250)
+            x_coordinate += przycisk_bialy.winfo_reqwidth()
+
+    black_key_offsets = {'C#4': 1, 'D#4': 2, 'F#4': 4, 'G#4': 5, 'A#4': 6, 'C#5': 8, 'D#5': 9, 'F#5': 11, 'G#5': 12,
+                         'A#5': 13}
+    # Rysowanie czarnych klawiszy w pianinoFrame
+    for i in range(len(klawisze_pianina)):
+        if '#' in klawisze_pianina[i]:
+            white_key_width = przycisk_bialy.winfo_reqwidth()
+            black_key_offset = black_key_offsets[klawisze_pianina[i]]
+            black_key_x = (black_key_offset * white_key_width) - (white_key_width // 3.1) + 100
+
+            stworz_klawisz(tutorialsFrame, klawisze_pianina[i], black_key_x, 250, czarny=True)
+
     conn.close()
 
 def update_timer(timer_label):
@@ -214,6 +276,8 @@ def update_timer(timer_label):
         formatted_time = time.strftime('%H:%M:%S', time.gmtime(elapsed_time))
         timer_label.config(text=formatted_time)
         timer_label.after(1000, lambda: update_timer(timer_label))
+
+nazwa_utworu = ""
 
 def nagrywanie_fun(przycisk_nagrywania, icons, timer_label):
     global nagrywanie
@@ -235,17 +299,41 @@ def nagrywanie_fun(przycisk_nagrywania, icons, timer_label):
 
     czas_nacisniecia = time.time()
 
-
     if nagrywanie == False:
-        #TODO MARTA INPUT DO NAZWY
+        # Utwórz nowe okno top-level do wprowadzenia nazwy utworu
+        entry_window = tk.Toplevel()
+        entry_window.title("Podaj nazwę utworu")
 
-        zapisz_do_bazy("utworek123", klawisz_lista, czas_lista)
+        # Funkcja obsługująca zamknięcie okna
+        global nazwa_utworu
+        nazwa_utworu = ""
+
+        def on_close():
+            global nazwa_utworu
+            nazwa_utworu = entry.get()
+            entry_window.destroy()
+
+        # Entry do wprowadzenia nazwy utworu
+        entry = tk.Entry(entry_window)
+        entry.pack(padx=10, pady=10)
+
+        # Przycisk do potwierdzenia wprowadzonej nazwy
+        confirm_button = tk.Button(entry_window, text="Potwierdź", command=on_close)
+        confirm_button.pack(pady=10)
+
+        # Czekaj na zamknięcie okna
+        entry_window.wait_window()
+        # Sprawdź, czy użytkownik nie anulował wprowadzania nazwy
+        if not nazwa_utworu:
+            return
+
+        zapisz_do_bazy(nazwa_utworu, klawisz_lista, czas_lista)
 
         # dodanie listy utworów w zakladce "nagrania"
-        lista_utworow_z_bazy(0, recordingsFrame)
+        ostatni_utwor_z_bazy(0, recordingsFrame)
 
         # dodanie listy tutoriali w zakładce "tutoriale"
-        lista_utworow_z_bazy(1, tutorialsFrame)
+        ostatni_utwor_z_bazy(1, scrollableTutorialsFrame)
 
         klawisz_lista = []
         czas_lista = []
@@ -253,20 +341,21 @@ def nagrywanie_fun(przycisk_nagrywania, icons, timer_label):
 
 
 klawisze_buttons = []
-def stworz_klawisz(where, klawisz, x, czarny=False):
+def stworz_klawisz(where, klawisz, x, y, czarny=False):
     if czarny:
         button = tk.Button(where, width=4, height=12, bg='black', fg='white', text=klawisz,
                            command=lambda: klikniecie_klawisza(klawisz))
-        button.place(x=x, y=64)
+        button.place(x=x, y=y)
     else:
         button = tk.Button(where, width=8, height=18, bg='white', fg='black', text=klawisz,
                            command=lambda: klikniecie_klawisza(klawisz))
-        button.place(x=x, y=64)
+        button.place(x=x, y=y)
     klawisze_buttons.append(button)
     return button
 
 recordingsFrame = None
 tutorialsFrame = None
+scrollableTutorialsFrame = None
 
 def guiApp():
     global recordingsFrame, tutorialsFrame
@@ -294,21 +383,23 @@ def guiApp():
     recordingsFrame = ttk.Frame(app)
     recordingsFrame.pack(fill='both', expand=True)
 
-    tutorialsFrame = ttk.Frame(app)
+
+    tutorialsFrame = ttk.Frame(app) #1
     tutorialsFrame.pack(fill='both', expand=True)
 
+
     # Tutorials frame with scrollable capability
-    tutorialsCanvas = tk.Canvas(tutorialsFrame)
-    tutorialsScrollbar = ttk.Scrollbar(tutorialsFrame, orient="vertical", command=tutorialsCanvas.yview)
-    scrollableTutorialsFrame = ttk.Frame(tutorialsCanvas)
+    # tutorialsCanvas = tk.Canvas(tutorialsFrame) #2
+    # tutorialsScrollbar = ttk.Scrollbar(tutorialsFrame, orient="vertical", command=tutorialsCanvas.yview) #3
+    # scrollableTutorialsFrame = ttk.Frame(tutorialsCanvas) #4
 
     # Configuring the canvas
-    tutorialsCanvas.configure(yscrollcommand=tutorialsScrollbar.set)
-    tutorialsCanvas.bind('<Configure>', lambda e: tutorialsCanvas.configure(scrollregion=tutorialsCanvas.bbox("all")))
-    tutorialsCanvas.create_window((0, 0), window=scrollableTutorialsFrame, anchor="nw")
-
-    tutorialsCanvas.pack(side="left", fill="both", expand=True)
-    tutorialsScrollbar.pack(side="right", fill="y")
+    # tutorialsCanvas.configure(yscrollcommand=tutorialsScrollbar.set)
+    # tutorialsCanvas.bind('<Configure>', lambda e: tutorialsCanvas.configure(scrollregion=tutorialsCanvas.bbox("all")))
+    # tutorialsCanvas.create_window((0, 0), window=scrollableTutorialsFrame, anchor="nw")
+    #
+    # tutorialsCanvas.pack(side="left", fill="both", expand=True)
+    # tutorialsScrollbar.pack(side="right", fill="y")
 
     app.add(pianinoFrame, text='Pianino')
     app.add(recordingsFrame, text='Nagrane nagrania')
@@ -338,7 +429,7 @@ def guiApp():
     x_coordinate = 0
     for i in range(len(klawisze_pianina)):
         if '#' not in klawisze_pianina[i]:
-            przycisk_bialy = stworz_klawisz(pianinoFrame, klawisze_pianina[i], x_coordinate)
+            przycisk_bialy = stworz_klawisz(pianinoFrame, klawisze_pianina[i], x_coordinate, 64)
             x_coordinate += przycisk_bialy.winfo_reqwidth()
 
     black_key_offsets = {'C#4': 1, 'D#4': 2, 'F#4': 4, 'G#4': 5, 'A#4': 6, 'C#5': 8, 'D#5': 9, 'F#5': 11, 'G#5': 12, 'A#5': 13}
@@ -348,13 +439,32 @@ def guiApp():
             black_key_offset = black_key_offsets[klawisze_pianina[i]]
             black_key_x = (black_key_offset * white_key_width) - (white_key_width // 3.1)
 
-            stworz_klawisz(pianinoFrame, klawisze_pianina[i], black_key_x, czarny=True)
+            stworz_klawisz(pianinoFrame, klawisze_pianina[i], black_key_x, 64, czarny=True)
+
+    x_coordinate = 80
+    for i in range(len(klawisze_pianina)):
+        if '#' not in klawisze_pianina[i]:
+            przycisk_bialy = stworz_klawisz(tutorialsFrame, klawisze_pianina[i], x_coordinate, 250)
+            x_coordinate += przycisk_bialy.winfo_reqwidth()
+
+    black_key_offsets = {'C#4': 1, 'D#4': 2, 'F#4': 4, 'G#4': 5, 'A#4': 6, 'C#5': 8, 'D#5': 9, 'F#5': 11, 'G#5': 12,
+                         'A#5': 13}
+    # Rysowanie czarnych klawiszy w pianinoFrame
+    for i in range(len(klawisze_pianina)):
+        if '#' in klawisze_pianina[i]:
+            white_key_width = przycisk_bialy.winfo_reqwidth()
+            black_key_offset = black_key_offsets[klawisze_pianina[i]]
+            black_key_x = (black_key_offset * white_key_width) - (white_key_width // 3.1) + 100
+
+            stworz_klawisz(tutorialsFrame, klawisze_pianina[i], black_key_x, 250, czarny=True)
 
     lista_utworow_z_bazy(0, recordingsFrame)
-    lista_utworow_z_bazy(1, tutorialsFrame)
+    lista_utworow_z_bazy(1, scrollableTutorialsFrame)
 
-    def on_configure(event):
-        tutorialsCanvas.configure(scrollregion=tutorialsCanvas.bbox("all"))
+
+
+    # def on_configure(event):
+    #     tutorialsCanvas.configure(scrollregion=tutorialsCanvas.bbox("all"))
 
     root.bind("<KeyPress>", obsluga_wielu_klawiszy)
     root.bind("<KeyRelease>", obsluga_wielu_klawiszy)
